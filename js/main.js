@@ -12,6 +12,22 @@
   const STORAGE_KEY = "longde_site_lang";
   const DEFAULT_LANG = "en";
 
+  /* ==================== 询价表单发送配置 ====================
+   * 客户点击 Request a Quote 后，信息如何送到您的邮箱？
+   *
+   * 【推荐 · GitHub Pages 免费方案】Web3Forms 中转（不弹邮箱软件）：
+   *   1. 打开 https://web3forms.com ，用 sales@longdeyizhi.com 注册；
+   *   2. 把网站生成的 Access Key 填到下方 web3forms_key 引号里；
+   *   3. 保存后上传，客户提交询价 → 邮件直接发到您的邮箱（不再弹邮箱软件）。
+   *
+   * 【服务器方案】部署到支持 PHP 的服务器（Hostinger / 阿里云）后，
+   *   保持 web3forms_key 为空，脚本会自动改用 send_mail.php 发送。
+   *   本地双击预览（无服务器）时，仍会退回调用邮箱软件的方式。
+   * ========================================================== */
+  const FORM_CONFIG = {
+    web3forms_key: "1a79cad1-a0c1-42bc-a32e-d51225ca4e09"   // Web3Forms 的 Access Key
+  };
+
   /* ---------- 获取初始语言：优先地址栏 ?lang=，其次本地记忆，默认英文 ---------- */
   function getInitialLang() {
     try {
@@ -243,11 +259,25 @@
     const formData = new FormData(contactForm);
     formData.set("lang", currentLang);
 
-    fetch("send_mail.php", { method: "POST", body: formData })
+    let endpoint = "send_mail.php";
+    let viaWeb3 = false;
+    if (FORM_CONFIG.web3forms_key) {
+      viaWeb3 = true;
+      endpoint = "https://api.web3forms.com/submit";
+      formData.set("access_key", FORM_CONFIG.web3forms_key);
+      formData.set(
+        "subject",
+        "[" + LANG_NAMES[currentLang] + "] " + t.mail_subject +
+        (company ? " - " + company : "") +
+        (product ? " - " + product : "")
+      );
+    }
+
+    fetch(endpoint, { method: "POST", body: formData })
       .then(function (res) { return res.json(); })
       .then(function (data) {
         submitBtn.disabled = false;
-        if (data && data.ok) {
+        if ((data && data.ok) || (viaWeb3 && data && data.success)) {
           contactForm.reset();
           showFormStatus("ok", "form_success");
         } else {
