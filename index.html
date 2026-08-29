@@ -268,23 +268,37 @@
             <input type="text" name="website" id="cfWebsite" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
             <div class="form-row">
               <div class="form-group">
-                <label for="cfName" data-i18n="form_name">Name</label>
+                <label for="cfName" class="req" data-i18n="form_name">Name</label>
                 <input type="text" id="cfName" name="name" data-i18n-ph="form_name" required>
               </div>
               <div class="form-group">
-                <label for="cfCompany" data-i18n="form_company">Company</label>
-                <input type="text" id="cfCompany" name="company" data-i18n-ph="form_company">
+                <label for="cfCompany" class="req" data-i18n="form_company">Company</label>
+                <input type="text" id="cfCompany" name="company" data-i18n-ph="form_company" required>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label for="cfEmail" data-i18n="form_email">Email</label>
+                <label for="cfEmail" class="req" data-i18n="form_email">Email</label>
                 <input type="email" id="cfEmail" name="email" data-i18n-ph="form_email" required>
               </div>
               <div class="form-group">
-                <label for="cfCategory" data-i18n="form_category">Product Category</label>
-                <select id="cfCategory" name="category"></select>
+                <label for="cfPhone" data-i18n="form_phone">Phone</label>
+                <input type="text" id="cfPhone" name="phone" data-i18n-ph="form_phone">
               </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="cfWechat" data-i18n="form_wechat">WeChat</label>
+                <input type="text" id="cfWechat" name="wechat" data-i18n-ph="form_wechat">
+              </div>
+              <div class="form-group">
+                <label for="cfContactApp" data-i18n="form_contact_app">WhatsApp / LINE / Other App</label>
+                <input type="text" id="cfContactApp" name="contact_app" data-i18n-ph="form_contact_app">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="cfCategory" data-i18n="form_category">Product Category</label>
+              <select id="cfCategory" name="category"></select>
             </div>
             <div class="form-row">
               <div class="form-group">
@@ -298,16 +312,25 @@
             </div>
             <div class="form-group">
               <label for="cfMsg" data-i18n="form_msg">Message</label>
-              <textarea id="cfMsg" name="message" rows="5" data-i18n-ph="form_msg" required></textarea>
+              <textarea id="cfMsg" name="message" rows="5" data-i18n-ph="form_msg"></textarea>
             </div>
             <button type="submit" class="btn btn-primary btn-block" data-i18n="form_send">Request a Quote</button>
             <p class="form-note" data-i18n="form_note">We will reply to your inquiry by email as soon as possible.</p>
-            <p class="form-status" id="formStatus" role="status" hidden></p>
           </form>
         </div>
       </div>
     </section>
   </main>
+
+  <!-- 提交结果弹窗 -->
+  <div class="modal-overlay" id="formModal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <div class="modal-icon" id="modalIcon">✓</div>
+      <div class="modal-title" id="modalTitle"></div>
+      <p class="modal-text" id="modalText"></p>
+      <button type="button" class="btn btn-primary modal-ok" id="modalOk" data-i18n="modal_ok">OK</button>
+    </div>
+  </div>
 
   <!-- 页脚 -->
   <footer class="site-footer">
