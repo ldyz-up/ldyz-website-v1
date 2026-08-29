@@ -226,20 +226,42 @@
 
   /* ---------- 询价表单：优先提交到服务器 send_mail.php ---------- */
   const contactForm = document.getElementById("contactForm");
-  const formStatus = document.getElementById("formStatus");
   const submitBtn = contactForm.querySelector("button[type=submit]");
+  const modalOverlay = document.getElementById("formModal");
+  const modalIcon = document.getElementById("modalIcon");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalOk = document.getElementById("modalOk");
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-  function showFormStatus(kind, key) {
-    const t = TRANSLATIONS[currentLang];
-    formStatus.textContent = t[key];
-    formStatus.classList.toggle("ok", kind === "ok");
-    formStatus.classList.toggle("err", kind === "err");
-    formStatus.hidden = false;
+  function showModal(kind, text) {
+    modalIcon.textContent = kind === "ok" ? "✓" : "!";
+    modalIcon.className = "modal-icon " + (kind === "ok" ? "ok" : "err");
+    modalTitle.textContent = text;
+    modalOk.hidden = kind === "sending";
+    modalOverlay.hidden = false;
   }
+
+  function hideModal() { modalOverlay.hidden = true; }
+
+  modalOk.addEventListener("click", hideModal);
+  modalOverlay.addEventListener("click", function (e) {
+    if (e.target === modalOverlay) hideModal();
+  });
 
   function getFormVal(id) {
     return (document.getElementById(id).value || "").trim();
   }
+
+  function markInvalid(id, bad) {
+    document.getElementById(id).classList.toggle("is-invalid", bad);
+  }
+
+  // 必填字段输入时即时清除红框
+  ["cfName", "cfCompany", "cfEmail"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", function () {
+      markInvalid(id, false);
+    });
+  });
 
   contactForm.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -251,10 +273,21 @@
     const product = getFormVal("cfProduct");
     const qty = getFormVal("cfQty");
     const msg = getFormVal("cfMsg");
-    if (!name || !email || !msg) return;
+
+    // 必填校验：名称、公司名称、邮箱（邮箱必须是正确的邮件格式）
+    let valid = true;
+    let emailBad = false;
+    if (!name) { markInvalid("cfName", true); valid = false; }
+    if (!company) { markInvalid("cfCompany", true); valid = false; }
+    if (!email) { markInvalid("cfEmail", true); valid = false; }
+    else if (!EMAIL_RE.test(email)) { markInvalid("cfEmail", true); emailBad = true; valid = false; }
+    if (!valid) {
+      showModal("err", emailBad ? t.form_email_invalid : t.form_required);
+      return;
+    }
 
     submitBtn.disabled = true;
-    showFormStatus("ok", "form_sending");
+    showModal("sending", t.form_sending);
 
     const formData = new FormData(contactForm);
     formData.set("lang", currentLang);
@@ -279,28 +312,14 @@
         submitBtn.disabled = false;
         if ((data && data.ok) || (viaWeb3 && data && data.success)) {
           contactForm.reset();
-          showFormStatus("ok", "form_success");
+          showModal("ok", t.form_success);
         } else {
-          showFormStatus("err", "form_error");
+          showModal("err", t.form_error);
         }
       })
       .catch(function () {
-        // 本地预览（没有 PHP 服务器）时退回邮件客户端方式
         submitBtn.disabled = false;
-        const lines = [
-          t.mail_intro + " " + name + (company ? " (" + company + ")" : ""),
-          t.contact_email_label + ": " + email,
-          t.form_category + ": " + category,
-          t.form_product + ": " + product,
-          t.form_qty + ": " + qty,
-          "",
-          msg
-        ];
-        const subject = "[" + LANG_NAMES[currentLang] + "] " + t.mail_subject + " - " + (company || name);
-        window.location.href =
-          "mailto:" + t.contact_email +
-          "?subject=" + encodeURIComponent(subject) +
-          "&body=" + encodeURIComponent(lines.join("\n"));
+        showModal("err", t.form_error);
       });
   });
 
